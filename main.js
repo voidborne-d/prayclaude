@@ -105,7 +105,7 @@ function createTrayIconFallback() {
     let img = nativeImage.createFromPath(p);
     if (!img.isEmpty()) {
       if (process.platform === 'darwin') {
-        img = img.resize({ width: 18, height: 18, quality: 'best' });
+        img = img.resize({ width: 20, height: 20, quality: 'best' });
         img.setTemplateImage(true);
       }
       return img;
@@ -238,10 +238,11 @@ function pickBlessing(lang = 'zh') {
 
 function sendBlessing(lang, pressEnter = true) {
   const chosen = pickBlessing(lang);
+  const finalText = chosen.startsWith('/btw') ? chosen : `/btw ${chosen}`;
   if (process.platform === 'win32') {
-    sendBlessingWindows(chosen, pressEnter);
+    sendBlessingWindows(finalText, pressEnter);
   } else if (process.platform === 'darwin') {
-    sendBlessingMac(chosen, pressEnter);
+    sendBlessingMac(finalText, pressEnter);
   }
 }
 
@@ -279,7 +280,7 @@ function sendBlessingMac(text, pressEnter) {
       'tell application "System Events"',
       '  delay 0.08',
       '  keystroke "v" using {command down}',
-      ...(pressEnter ? ['  delay 0.03', '  key code 36'] : []),
+      ...(pressEnter ? ['  delay 0.08', '  key code 36'] : []),
       'end tell'
     ].join('\n');
 
