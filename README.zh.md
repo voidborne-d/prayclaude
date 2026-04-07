@@ -4,7 +4,7 @@
 
 **有时候 Claude Code 不需要挨打，它需要一炷赛博香，一点玄学加持，和一句更像人话的提醒。**
 
-![PrayClaude 演示图](assets/prayclaude-demo-zh.svg)
+![PrayClaude 演示图](https://raw.githubusercontent.com/voidborne-d/prayclaude/main/assets/prayclaude-demo-zh.svg?v=2)
 
 [![GitHub stars](https://img.shields.io/github/stars/voidborne-d/prayclaude?style=flat-square)](https://github.com/voidborne-d/prayclaude)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
