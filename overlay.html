@@ -351,27 +351,13 @@ function drawParticles() {
 }
 
 function drawAltar() {
-  const baseY = H - 118;
-  const altarX = W * 0.39;
-  const altarW = W * 0.22;
+  const baseY = H - 110;
   ctx.save();
-
-  const glow = ctx.createLinearGradient(0, baseY - 24, 0, baseY + 52);
-  glow.addColorStop(0, 'rgba(255,170,70,0.16)');
+  const glow = ctx.createRadialGradient(W / 2, baseY, 0, W / 2, baseY, 160);
+  glow.addColorStop(0, 'rgba(255,170,70,0.12)');
   glow.addColorStop(1, 'rgba(255,170,70,0)');
   ctx.fillStyle = glow;
-  ctx.fillRect(altarX - 24, baseY - 24, altarW + 48, 76);
-
-  ctx.fillStyle = 'rgba(25,18,15,0.58)';
-  ctx.beginPath();
-  ctx.roundRect(altarX, baseY, altarW, 46, 18);
-  ctx.fill();
-
-  ctx.strokeStyle = 'rgba(220,170,100,0.32)';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.roundRect(altarX, baseY, altarW, 46, 18);
-  ctx.stroke();
+  ctx.fillRect(W / 2 - 180, baseY - 40, 360, 120);
   ctx.restore();
 }
 

@@ -246,25 +246,18 @@ function sendBlessing(lang, pressEnter = true) {
 }
 
 function sendBlessingWindows(text, pressEnter) {
-  if (!keybd_event || !VkKeyScanA) return;
-  const tapKey = vk => {
-    keybd_event(vk, 0, 0, 0);
-    keybd_event(vk, 0, KEYUP, 0);
-  };
-  const tapChar = ch => {
-    const packed = VkKeyScanA(ch.charCodeAt(0));
-    if (packed === -1) return;
-    const vk = packed & 0xff;
-    const shiftState = (packed >> 8) & 0xff;
-    if (shiftState & 1) keybd_event(0x10, 0, 0, 0);
-    tapKey(vk);
-    if (shiftState & 1) keybd_event(0x10, 0, KEYUP, 0);
-  };
-  for (const ch of text) tapChar(ch);
-  if (pressEnter) {
-    keybd_event(VK_RETURN, 0, 0, 0);
-    keybd_event(VK_RETURN, 0, KEYUP, 0);
-  }
+  if (!text) return;
+  const escaped = text.replace(/\^/g, '{^}').replace(/\+/g, '{+}').replace(/%/g, '{%}').replace(/~/g, '{~}').replace(/\(/g, '{(}').replace(/\)/g, '{)}').replace(/\{/g, '{{}').replace(/\}/g, '{}}');
+  const script = [
+    '$wshell = New-Object -ComObject WScript.Shell',
+    'Start-Sleep -Milliseconds 50',
+    `$wshell.SendKeys("${escaped}")`,
+    ...(pressEnter ? ['$wshell.SendKeys("{ENTER}")'] : []),
+  ].join('; ');
+
+  execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], err => {
+    if (err) console.warn('windows blessing macro failed:', err.message);
+  });
 }
 
 function sendBlessingMac(text, pressEnter) {
