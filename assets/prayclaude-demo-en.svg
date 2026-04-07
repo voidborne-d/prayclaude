@@ -1,0 +1,52 @@
+<svg width="1200" height="420" viewBox="0 0 1200 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#120D0A"/>
+      <stop offset="1" stop-color="#2A1B13"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(605 230) rotate(90) scale(180 380)">
+      <stop stop-color="#FFBE73" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#FFBE73" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ember" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(630 142) rotate(90) scale(28 28)">
+      <stop stop-color="#FFF1D6"/>
+      <stop offset="0.45" stop-color="#FFA45B" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#FF6E2D" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur" x="0" y="0" width="1200" height="420" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="420" fill="url(#bg)"/>
+  <rect width="1200" height="420" fill="url(#glow)"/>
+
+  <g filter="url(#blur)" opacity="0.65">
+    <ellipse cx="656" cy="112" rx="34" ry="20" fill="#E8E8EE"/>
+    <ellipse cx="676" cy="80" rx="28" ry="18" fill="#E8E8EE"/>
+    <ellipse cx="642" cy="60" rx="24" ry="16" fill="#E8E8EE"/>
+    <ellipse cx="690" cy="36" rx="22" ry="14" fill="#E8E8EE"/>
+    <ellipse cx="654" cy="24" rx="18" ry="12" fill="#E8E8EE"/>
+  </g>
+
+  <text x="120" y="138" fill="#F6E7D2" font-size="52" font-family="Georgia, serif" font-weight="700">PrayClaude</text>
+  <text x="120" y="188" fill="#D8C2A7" font-size="24" font-family="Arial, sans-serif">A tray ritual for Claude Code. Offer incense, restore focus, send a blessing.</text>
+
+  <g opacity="0.9">
+    <rect x="500" y="262" width="210" height="14" rx="7" fill="#6A4330"/>
+    <path d="M540 278H670L644 356H566L540 278Z" fill="#3F291D"/>
+    <path d="M540 278H670L644 356H566L540 278Z" stroke="#D8AB72" stroke-width="4"/>
+    <rect x="566" y="302" width="78" height="20" rx="8" fill="#5C3A2A" stroke="#E2B178" stroke-width="3"/>
+  </g>
+
+  <path d="M606 292C619 264 632 236 645 208C658 180 672 150 686 118" stroke="#7F543A" stroke-width="10" stroke-linecap="round"/>
+  <path d="M608 292C621 264 634 236 647 208C660 180 674 150 688 118" stroke="#E5B680" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+  <circle cx="690" cy="114" r="26" fill="url(#ember)"/>
+  <circle cx="690" cy="114" r="5" fill="#FFD7A3"/>
+
+  <text x="850" y="150" fill="#FFE3B8" font-size="34" font-family="Georgia, serif" font-weight="700">May this repo stay steady</text>
+  <text x="882" y="202" fill="#EACFA8" font-size="22" font-family="Arial, sans-serif">Offer one calm blessing and let Claude Code refocus.</text>
+
+  <text x="920" y="286" fill="#F4D9AE" font-size="56" font-family="Georgia, serif" opacity="0.72">Bless</text>
+  <text x="1030" y="246" fill="#F4D9AE" font-size="42" font-family="Georgia, serif" opacity="0.52">Ward</text>
+</svg>

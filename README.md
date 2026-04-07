@@ -4,7 +4,7 @@
 
 **Sometimes Claude Code does not need a whip. It needs one stick of digital incense, a small blessing, and a reminder to write better code.**
 
-![PrayClaude demo](assets/prayclaude-demo.svg)
+![PrayClaude demo](assets/prayclaude-demo-en.svg)
 
 [![GitHub stars](https://img.shields.io/github/stars/voidborne-d/prayclaude?style=flat-square)](https://github.com/voidborne-d/prayclaude)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
