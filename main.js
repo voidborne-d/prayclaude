@@ -257,7 +257,7 @@ function sendBlessingWindows(text, pressEnter) {
     'Add-Type -AssemblyName System.Windows.Forms',
     `[System.Windows.Forms.Clipboard]::SetText("${escaped}")`,
     '$wshell = New-Object -ComObject WScript.Shell',
-    'Start-Sleep -Milliseconds 60',
+    'Start-Sleep -Milliseconds 80',
     '$wshell.SendKeys("^v")',
     ...(pressEnter ? ['$wshell.SendKeys("{ENTER}")'] : []),
   ].join('; ');
@@ -268,17 +268,24 @@ function sendBlessingWindows(text, pressEnter) {
 }
 
 function sendBlessingMac(text, pressEnter) {
-  const escaped = text.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-  const script = [
-    'tell application "System Events"',
-    '  delay 0.05',
-    `  keystroke "${escaped}"`,
-    ...(pressEnter ? ['  key code 36'] : []),
-    'end tell'
-  ].join('\n');
+  const escapedShell = text.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '\\\$').replace(/`/g, '\\`');
+  execFile('/bin/sh', ['-lc', `printf "%s" "${escapedShell}" | pbcopy`], shellErr => {
+    if (shellErr) {
+      console.warn('mac clipboard copy failed:', shellErr.message);
+      return;
+    }
 
-  execFile('osascript', ['-e', script], err => {
-    if (err) console.warn('mac blessing macro failed:', err.message);
+    const script = [
+      'tell application "System Events"',
+      '  delay 0.08',
+      '  keystroke "v" using {command down}',
+      ...(pressEnter ? ['  delay 0.03', '  key code 36'] : []),
+      'end tell'
+    ].join('\n');
+
+    execFile('osascript', ['-e', script], err => {
+      if (err) console.warn('mac blessing macro failed:', err.message);
+    });
   });
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "prayclaude",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Offer digital incense and calm blessings to Claude Code",
   "license": "MIT",
   "main": "main.js",
