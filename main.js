@@ -102,9 +102,12 @@ function refocusPreviousApp() {
 function createTrayIconFallback() {
   const p = path.join(__dirname, 'icon', 'Template.png');
   if (fs.existsSync(p)) {
-    const img = nativeImage.createFromPath(p);
+    let img = nativeImage.createFromPath(p);
     if (!img.isEmpty()) {
-      if (process.platform === 'darwin') img.setTemplateImage(true);
+      if (process.platform === 'darwin') {
+        img = img.resize({ width: 18, height: 18, quality: 'best' });
+        img.setTemplateImage(true);
+      }
       return img;
     }
   }
@@ -127,8 +130,11 @@ async function getTrayIcon() {
   }
   const png = path.join(iconDir, 'icon.png');
   if (fs.existsSync(png)) {
-    const img = nativeImage.createFromPath(png);
-    if (!img.isEmpty()) return img;
+    let img = nativeImage.createFromPath(png);
+    if (!img.isEmpty()) {
+      img = img.resize({ width: 22, height: 22, quality: 'best' });
+      return img;
+    }
   }
   return createTrayIconFallback();
 }

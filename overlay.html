@@ -42,6 +42,7 @@ const ritualState = {
   floatingTexts: [],
   blessingFlashUntil: 0,
   holdStart: 0,
+  holdProgress: 0,
   lastTrigger: 0,
   dismissing: false,
   messageIndex: 0,
@@ -119,12 +120,14 @@ function spawnIncense(x, y) {
   ritualState.floatingTexts = [];
   ritualState.blessingFlashUntil = 0;
   ritualState.holdStart = 0;
+  ritualState.holdProgress = 0;
   ritualState.dismissing = false;
 }
 
 function dismissIncense() {
   ritualState.dismissing = true;
   ritualState.holdStart = 0;
+  ritualState.holdProgress = 0;
 }
 
 function getTip() {
@@ -183,6 +186,7 @@ function triggerBlessing() {
   const now = performance.now();
   if (now - ritualState.lastTrigger < ritualState.config.triggerCooldownMs) return;
   ritualState.lastTrigger = now;
+  ritualState.holdProgress = 1;
   ritualState.blessingFlashUntil = now + ritualState.config.blessingFlashMs;
   const bank = activeText().center;
   ritualState.floatingTexts.push({
@@ -226,11 +230,14 @@ function update() {
 
   if (ritualState.holdStart && !ritualState.dismissing) {
     const elapsed = performance.now() - ritualState.holdStart;
-    incense.glow = Math.max(incense.glow, Math.min(1.4, 0.35 + elapsed / ritualState.config.holdThresholdMs));
+    ritualState.holdProgress = Math.min(1, elapsed / ritualState.config.holdThresholdMs);
+    incense.glow = Math.max(incense.glow, Math.min(1.4, 0.35 + ritualState.holdProgress));
     if (elapsed >= ritualState.config.holdThresholdMs) {
       ritualState.holdStart = 0;
       triggerBlessing();
     }
+  } else {
+    ritualState.holdProgress *= 0.9;
   }
 
   ritualState.embers = ritualState.embers.filter(p => p.life > 0.03);
@@ -381,17 +388,39 @@ function drawBlessingFlash() {
 
 function drawFloatingTexts() {
   const copy = activeText();
+  const hintY = Math.min(H - 64, H * 0.88);
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
+
   for (const t of ritualState.floatingTexts) {
-    ctx.font = ritualState.lang === 'zh' ? '600 32px serif' : '600 26px sans-serif';
-    ctx.fillStyle = `rgba(255,235,200,${t.life * 0.88})`;
+    ctx.font = ritualState.lang === 'zh' ? '600 34px serif' : '600 28px sans-serif';
+    ctx.fillStyle = `rgba(255,235,200,${t.life * 0.92})`;
+    ctx.shadowColor = 'rgba(255,190,120,0.35)';
+    ctx.shadowBlur = 16;
     ctx.fillText(t.text, W / 2, t.y);
   }
+
+  if (ritualState.holdProgress > 0.02) {
+    const ringWidth = 240;
+    const ringHeight = 8;
+    const progressY = hintY - 28;
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255,230,190,0.16)';
+    ctx.beginPath();
+    ctx.roundRect(W / 2 - ringWidth / 2, progressY - ringHeight / 2, ringWidth, ringHeight, 999);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,196,120,0.82)';
+    ctx.beginPath();
+    ctx.roundRect(W / 2 - ringWidth / 2, progressY - ringHeight / 2, ringWidth * ritualState.holdProgress, ringHeight, 999);
+    ctx.fill();
+  }
+
   ctx.font = ritualState.lang === 'zh' ? '500 18px sans-serif' : '500 17px sans-serif';
-  ctx.fillStyle = 'rgba(255,235,210,0.72)';
-  ctx.fillText(copy.hint, W / 2, H - 42);
+  ctx.fillStyle = 'rgba(255,235,210,0.82)';
+  ctx.shadowColor = 'rgba(0,0,0,0.35)';
+  ctx.shadowBlur = 10;
+  ctx.fillText(copy.hint, W / 2, hintY);
   ctx.restore();
 }
 
