@@ -351,22 +351,27 @@ function drawParticles() {
 }
 
 function drawAltar() {
-  const baseY = H - 120;
+  const baseY = H - 118;
+  const altarX = W * 0.39;
+  const altarW = W * 0.22;
   ctx.save();
-  ctx.fillStyle = 'rgba(25,18,15,0.55)';
-  ctx.beginPath();
-  ctx.roundRect(W * 0.37, baseY, W * 0.26, 48, 18);
-  ctx.fill();
 
-  const glow = ctx.createLinearGradient(0, baseY - 20, 0, baseY + 48);
-  glow.addColorStop(0, 'rgba(255,170,70,0.18)');
+  const glow = ctx.createLinearGradient(0, baseY - 24, 0, baseY + 52);
+  glow.addColorStop(0, 'rgba(255,170,70,0.16)');
   glow.addColorStop(1, 'rgba(255,170,70,0)');
   ctx.fillStyle = glow;
-  ctx.fillRect(W * 0.37, baseY - 20, W * 0.26, 68);
+  ctx.fillRect(altarX - 24, baseY - 24, altarW + 48, 76);
 
-  ctx.strokeStyle = 'rgba(220,170,100,0.45)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(W * 0.39, baseY + 10, W * 0.22, 28);
+  ctx.fillStyle = 'rgba(25,18,15,0.58)';
+  ctx.beginPath();
+  ctx.roundRect(altarX, baseY, altarW, 46, 18);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(220,170,100,0.32)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(altarX, baseY, altarW, 46, 18);
+  ctx.stroke();
   ctx.restore();
 }
 

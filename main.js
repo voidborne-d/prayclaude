@@ -214,7 +214,14 @@ function toggleOverlay() {
 ipcMain.on('offer-blessing', (_event, payload = {}) => {
   try {
     const lang = resolveLanguage(payload.lang || appConfig.language);
-    if (appConfig.sendOnBlessing) sendBlessing(lang, appConfig.pressEnter);
+    refocusPreviousApp();
+    setTimeout(() => {
+      try {
+        if (appConfig.sendOnBlessing) sendBlessing(lang, appConfig.pressEnter);
+      } catch (err) {
+        console.warn('delayed sendBlessing failed:', err?.message || err);
+      }
+    }, 90);
   } catch (err) {
     console.warn('sendBlessing failed:', err?.message || err);
   }
@@ -264,6 +271,7 @@ function sendBlessingMac(text, pressEnter) {
   const escaped = text.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
   const script = [
     'tell application "System Events"',
+    '  delay 0.05',
     `  keystroke "${escaped}"`,
     ...(pressEnter ? ['  key code 36'] : []),
     'end tell'
