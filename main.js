@@ -112,12 +112,6 @@ function createTrayIconFallback() {
   return nativeImage.createEmpty();
 }
 
-async function tryIcnsTrayImage(icnsPath) {
-  const thumb = await nativeImage.createThumbnailFromPath(icnsPath, { width: 64, height: 64 });
-  if (!thumb.isEmpty()) return thumb;
-  return null;
-}
-
 async function getTrayIcon() {
   const iconDir = path.join(__dirname, 'icon');
   if (process.platform === 'win32') {
@@ -129,26 +123,12 @@ async function getTrayIcon() {
     return createTrayIconFallback();
   }
   if (process.platform === 'darwin') {
-    const file = path.join(iconDir, 'AppIcon.icns');
-    if (fs.existsSync(file)) {
-      const fromPath = nativeImage.createFromPath(file);
-      if (!fromPath.isEmpty()) return fromPath;
-      try {
-        const thumb = await tryIcnsTrayImage(file);
-        if (thumb) return thumb;
-      } catch (e) {
-        console.warn('AppIcon.icns thumbnail failed:', e?.message || e);
-      }
-      const tmp = path.join(os.tmpdir(), 'prayclaude-tray.icns');
-      try {
-        fs.copyFileSync(file, tmp);
-        const thumb = await tryIcnsTrayImage(tmp);
-        if (thumb) return thumb;
-      } catch (e) {
-        console.warn('AppIcon.icns temp copy failed:', e?.message || e);
-      }
-    }
     return createTrayIconFallback();
+  }
+  const png = path.join(iconDir, 'icon.png');
+  if (fs.existsSync(png)) {
+    const img = nativeImage.createFromPath(png);
+    if (!img.isEmpty()) return img;
   }
   return createTrayIconFallback();
 }
