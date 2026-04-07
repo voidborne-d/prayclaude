@@ -32,7 +32,7 @@ resize();
 window.addEventListener('resize', resize);
 
 const ritualState = {
-  lang: ((navigator.language || '').toLowerCase().startsWith('zh')) ? 'zh' : 'en',
+  lang: 'en',
   mouseX: window.innerWidth / 2,
   mouseY: window.innerHeight / 2,
   incense: null,
@@ -52,7 +52,7 @@ const ritualState = {
 const textBank = {
   zh: {
     center: ['愿此仓安稳', '愿 bug 退散', '愿测试转绿', '愿灵感降临', '愿提交顺遂'],
-    hint: '按住片刻，上香祈福',
+    hint: 'Hold for a moment to offer incense',
     glyphs: ['福', '护', '安'],
     flash: '护',
   },
