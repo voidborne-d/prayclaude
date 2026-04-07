@@ -1,0 +1,58 @@
+{
+  "name": "prayclaude",
+  "version": "0.2.0",
+  "description": "Offer digital incense and calm blessings to Claude Code",
+  "license": "MIT",
+  "main": "main.js",
+  "bin": {
+    "prayclaude": "bin/prayclaude.js"
+  },
+  "os": [
+    "darwin",
+    "win32",
+    "linux"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "electron",
+    "tray",
+    "overlay",
+    "claude-code",
+    "incense",
+    "blessing",
+    "ritual",
+    "productivity"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/voidborne-d/prayclaude.git"
+  },
+  "bugs": {
+    "url": "https://github.com/voidborne-d/prayclaude/issues"
+  },
+  "homepage": "https://github.com/voidborne-d/prayclaude#readme",
+  "files": [
+    "main.js",
+    "preload.js",
+    "overlay.html",
+    "config.default.json",
+    "sounds",
+    "icon",
+    "bin/prayclaude.js",
+    "README.md",
+    "README.zh.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "pack": "npm pack",
+    "generate:assets": "python3 scripts/generate-assets.py"
+  },
+  "dependencies": {
+    "electron": "^33.0.0",
+    "koffi": "^2.9.0"
+  }
+}

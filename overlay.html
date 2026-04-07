@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { margin: 0; padding: 0; cursor: none; }
+  html, body { overflow: hidden; background: transparent; width: 100%; height: 100%; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const DEFAULTS = {
+  bgAlpha: 0.018,
+  incenseLength: 170,
+  holdThresholdMs: 1800,
+  triggerCooldownMs: 1800,
+  sparkRate: 0.55,
+  smokeRate: 1.8,
+  glyphRate: 0.045,
+  blessingFlashMs: 950,
+  playSound: true,
+  showFloatingGlyphs: true,
+  showBlessingFlash: true,
+};
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+const ritualState = {
+  lang: ((navigator.language || '').toLowerCase().startsWith('zh')) ? 'zh' : 'en',
+  mouseX: window.innerWidth / 2,
+  mouseY: window.innerHeight / 2,
+  incense: null,
+  embers: [],
+  smokes: [],
+  glyphs: [],
+  floatingTexts: [],
+  blessingFlashUntil: 0,
+  holdStart: 0,
+  lastTrigger: 0,
+  dismissing: false,
+  messageIndex: 0,
+  config: { ...DEFAULTS },
+};
+
+const textBank = {
+  zh: {
+    center: ['愿此仓安稳', '愿 bug 退散', '愿测试转绿', '愿灵感降临', '愿提交顺遂'],
+    hint: '按住片刻，上香祈福',
+    glyphs: ['福', '护', '安'],
+    flash: '护',
+  },
+  en: {
+    center: ['May this repo stay steady', 'May the bugs dissolve', 'May the tests turn green', 'May clarity arrive', 'May the commit land well'],
+    hint: 'Hold for a moment to offer incense',
+    glyphs: ['Bless', 'Ward', 'Calm'],
+    flash: 'Bless',
+  },
+};
+
+const ritualSounds = {
+  temple: [220, 293.66, 329.63],
+};
+
+document.addEventListener('mousemove', e => {
+  ritualState.mouseX = e.clientX;
+  ritualState.mouseY = e.clientY;
+});
+
+document.addEventListener('mousedown', () => {
+  if (ritualState.incense && !ritualState.dismissing && !ritualState.holdStart) {
+    ritualState.holdStart = performance.now();
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  ritualState.holdStart = 0;
+});
+
+function activeText() {
+  return textBank[ritualState.lang] || textBank.zh;
+}
+
+function playTempleTone() {
+  if (!ritualState.config.playSound) return;
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return;
+  const audio = new AudioCtx();
+  const now = audio.currentTime;
+  ritualSounds.temple.forEach((freq, i) => {
+    const osc = audio.createOscillator();
+    const gain = audio.createGain();
+    osc.type = i === 0 ? 'sine' : 'triangle';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, now + i * 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.16 / (i + 1), now + i * 0.08 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 1.1);
+    osc.connect(gain).connect(audio.destination);
+    osc.start(now + i * 0.08);
+    osc.stop(now + i * 0.08 + 1.2);
+  });
+}
+
+function spawnIncense(x, y) {
+  ritualState.incense = {
+    x,
+    y,
+    angle: -Math.PI / 2.8,
+    glow: 0,
+  };
+  ritualState.embers = [];
+  ritualState.smokes = [];
+  ritualState.glyphs = [];
+  ritualState.floatingTexts = [];
+  ritualState.blessingFlashUntil = 0;
+  ritualState.holdStart = 0;
+  ritualState.dismissing = false;
+}
+
+function dismissIncense() {
+  ritualState.dismissing = true;
+  ritualState.holdStart = 0;
+}
+
+function getTip() {
+  const incense = ritualState.incense;
+  return {
+    x: incense.x + Math.cos(incense.angle) * ritualState.config.incenseLength,
+    y: incense.y + Math.sin(incense.angle) * ritualState.config.incenseLength,
+  };
+}
+
+function emitSmoke(count = 1) {
+  if (!ritualState.incense) return;
+  const tip = getTip();
+  for (let i = 0; i < count; i++) {
+    ritualState.smokes.push({
+      x: tip.x + (Math.random() - 0.5) * 6,
+      y: tip.y + (Math.random() - 0.5) * 4,
+      vx: (Math.random() - 0.5) * 0.7,
+      vy: -1.2 - Math.random() * 1.1,
+      life: 1,
+      size: 10 + Math.random() * 18,
+      wobble: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+function emitEmber() {
+  if (!ritualState.incense) return;
+  const tip = getTip();
+  ritualState.embers.push({
+    x: tip.x + (Math.random() - 0.5) * 5,
+    y: tip.y + (Math.random() - 0.5) * 5,
+    vx: (Math.random() - 0.5) * 0.8,
+    vy: -0.6 - Math.random() * 0.7,
+    life: 1,
+    size: 1.5 + Math.random() * 2.5,
+  });
+}
+
+function emitGlyph() {
+  if (!ritualState.incense || !ritualState.config.showFloatingGlyphs) return;
+  const tip = getTip();
+  const bank = activeText().glyphs;
+  ritualState.glyphs.push({
+    x: tip.x + (Math.random() - 0.5) * 14,
+    y: tip.y - 4,
+    vy: -0.4 - Math.random() * 0.4,
+    vx: (Math.random() - 0.5) * 0.35,
+    life: 1,
+    text: bank[Math.floor(Math.random() * bank.length)],
+    rot: (Math.random() - 0.5) * 0.5,
+  });
+}
+
+function triggerBlessing() {
+  const now = performance.now();
+  if (now - ritualState.lastTrigger < ritualState.config.triggerCooldownMs) return;
+  ritualState.lastTrigger = now;
+  ritualState.blessingFlashUntil = now + ritualState.config.blessingFlashMs;
+  const bank = activeText().center;
+  ritualState.floatingTexts.push({
+    text: bank[ritualState.messageIndex % bank.length],
+    life: 1,
+    y: H * 0.32,
+  });
+  ritualState.messageIndex += 1;
+  ritualState.incense.glow = 1.6;
+  for (let i = 0; i < 28; i++) emitSmoke(1);
+  for (let i = 0; i < 16; i++) emitGlyph();
+  playTempleTone();
+  window.bridge.offerBlessing({ lang: ritualState.lang });
+}
+
+function update() {
+  const incense = ritualState.incense;
+  if (!incense) return;
+
+  if (!ritualState.dismissing) {
+    incense.x += (ritualState.mouseX - incense.x) * 0.18;
+    incense.y += (ritualState.mouseY - incense.y) * 0.18;
+    const sway = Math.sin(performance.now() / 420) * 0.1;
+    incense.angle += ((-Math.PI / 2.85 + sway) - incense.angle) * 0.08;
+  } else {
+    incense.y += 16;
+    incense.angle += 0.02;
+    if (incense.y - 120 > H) {
+      ritualState.incense = null;
+      ritualState.dismissing = false;
+      window.bridge.hideOverlay();
+      return;
+    }
+  }
+
+  if (Math.random() < ritualState.config.sparkRate) emitEmber();
+  if (Math.random() < ritualState.config.smokeRate) emitSmoke();
+  if (Math.random() < ritualState.config.glyphRate) emitGlyph();
+
+  incense.glow *= 0.95;
+
+  if (ritualState.holdStart && !ritualState.dismissing) {
+    const elapsed = performance.now() - ritualState.holdStart;
+    incense.glow = Math.max(incense.glow, Math.min(1.4, 0.35 + elapsed / ritualState.config.holdThresholdMs));
+    if (elapsed >= ritualState.config.holdThresholdMs) {
+      ritualState.holdStart = 0;
+      triggerBlessing();
+    }
+  }
+
+  ritualState.embers = ritualState.embers.filter(p => p.life > 0.03);
+  for (const p of ritualState.embers) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy -= 0.01;
+    p.life *= 0.955;
+  }
+
+  ritualState.smokes = ritualState.smokes.filter(p => p.life > 0.02);
+  for (const p of ritualState.smokes) {
+    p.wobble += 0.04;
+    p.x += p.vx + Math.sin(p.wobble) * 0.22;
+    p.y += p.vy;
+    p.life *= 0.986;
+    p.size += 0.18;
+  }
+
+  ritualState.glyphs = ritualState.glyphs.filter(p => p.life > 0.03);
+  for (const g of ritualState.glyphs) {
+    g.x += g.vx;
+    g.y += g.vy;
+    g.life *= 0.985;
+    g.rot += 0.003;
+  }
+
+  ritualState.floatingTexts = ritualState.floatingTexts.filter(t => t.life > 0.02);
+  for (const t of ritualState.floatingTexts) {
+    t.life *= 0.97;
+    t.y -= 0.35;
+  }
+}
+
+function drawBackgroundGlow() {
+  const grad = ctx.createRadialGradient(W * 0.5, H * 0.65, 0, W * 0.5, H * 0.65, H * 0.6);
+  grad.addColorStop(0, 'rgba(255,170,70,0.06)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawIncense() {
+  const incense = ritualState.incense;
+  if (!incense) return;
+  const tip = getTip();
+  const buttX = incense.x;
+  const buttY = incense.y;
+
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = '#5b3722';
+  ctx.lineWidth = 8;
+  ctx.beginPath();
+  ctx.moveTo(buttX, buttY);
+  ctx.lineTo(tip.x, tip.y);
+  ctx.stroke();
+
+  ctx.strokeStyle = '#d5a06a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(buttX, buttY);
+  ctx.lineTo(tip.x, tip.y);
+  ctx.stroke();
+
+  const glow = 12 + incense.glow * 18;
+  const fire = ctx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, glow);
+  fire.addColorStop(0, 'rgba(255,245,220,0.95)');
+  fire.addColorStop(0.35, 'rgba(255,150,70,0.9)');
+  fire.addColorStop(1, 'rgba(255,70,20,0)');
+  ctx.fillStyle = fire;
+  ctx.beginPath();
+  ctx.arc(tip.x, tip.y, glow, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#ffcc88';
+  ctx.beginPath();
+  ctx.arc(tip.x, tip.y, 3.5 + incense.glow * 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawParticles() {
+  for (const p of ritualState.smokes) {
+    ctx.fillStyle = `rgba(220,220,230,${p.life * 0.16})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  for (const p of ritualState.embers) {
+    ctx.fillStyle = `rgba(255,190,90,${p.life * 0.9})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = ritualState.lang === 'zh' ? 'bold 24px serif' : '600 18px sans-serif';
+  for (const g of ritualState.glyphs) {
+    ctx.save();
+    ctx.translate(g.x, g.y);
+    ctx.rotate(g.rot);
+    ctx.fillStyle = `rgba(255,220,160,${g.life * 0.7})`;
+    ctx.fillText(g.text, 0, 0);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function drawAltar() {
+  const baseY = H - 120;
+  ctx.save();
+  ctx.fillStyle = 'rgba(25,18,15,0.55)';
+  ctx.beginPath();
+  ctx.roundRect(W * 0.37, baseY, W * 0.26, 48, 18);
+  ctx.fill();
+
+  const glow = ctx.createLinearGradient(0, baseY - 20, 0, baseY + 48);
+  glow.addColorStop(0, 'rgba(255,170,70,0.18)');
+  glow.addColorStop(1, 'rgba(255,170,70,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(W * 0.37, baseY - 20, W * 0.26, 68);
+
+  ctx.strokeStyle = 'rgba(220,170,100,0.45)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(W * 0.39, baseY + 10, W * 0.22, 28);
+  ctx.restore();
+}
+
+function drawBlessingFlash() {
+  if (!ritualState.config.showBlessingFlash) return;
+  const now = performance.now();
+  if (now >= ritualState.blessingFlashUntil) return;
+  const t = (ritualState.blessingFlashUntil - now) / ritualState.config.blessingFlashMs;
+  ctx.save();
+  ctx.fillStyle = `rgba(255,225,160,${0.12 * t})`;
+  ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = ritualState.lang === 'zh' ? 'bold 84px serif' : '700 56px sans-serif';
+  ctx.fillStyle = `rgba(255,230,180,${0.55 * t})`;
+  ctx.fillText(activeText().flash, W / 2, H / 2);
+  ctx.restore();
+}
+
+function drawFloatingTexts() {
+  const copy = activeText();
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const t of ritualState.floatingTexts) {
+    ctx.font = ritualState.lang === 'zh' ? '600 32px serif' : '600 26px sans-serif';
+    ctx.fillStyle = `rgba(255,235,200,${t.life * 0.88})`;
+    ctx.fillText(t.text, W / 2, t.y);
+  }
+  ctx.font = ritualState.lang === 'zh' ? '500 18px sans-serif' : '500 17px sans-serif';
+  ctx.fillStyle = 'rgba(255,235,210,0.72)';
+  ctx.fillText(copy.hint, W / 2, H - 42);
+  ctx.restore();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = `rgba(0,0,0,${ritualState.config.bgAlpha})`;
+  ctx.fillRect(0, 0, W, H);
+  drawBackgroundGlow();
+  drawAltar();
+  drawParticles();
+  drawIncense();
+  drawBlessingFlash();
+  drawFloatingTexts();
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+
+window.bridge.onConfigUpdated((payload) => {
+  ritualState.lang = payload.language || ritualState.lang;
+  ritualState.config = {
+    ...ritualState.config,
+    ...payload.ritual,
+    playSound: payload.playSound,
+    soundSet: payload.soundSet,
+  };
+});
+
+window.bridge.onSpawnIncense(() => {
+  spawnIncense(ritualState.mouseX || W / 2, ritualState.mouseY || H / 2);
+});
+
+window.bridge.onDismissIncense(() => {
+  dismissIncense();
+});
+</script>
+</body>
+</html>
