@@ -102,11 +102,12 @@ That is the whole machine.
 ## Example blessing lines
 
 ### English
-- May this build pass cleanly. Please continue, verify first, then commit.
-- Incense offered. Please check edge cases carefully and keep the code lean and steady.
-- May the bugs disperse and the tests turn green. Please self-review before you finish.
-- One stick of incense for this repo. Please favor correctness first, speed second.
-- Bless this session. Please think calmly, implement carefully, then summarize risks.
+- BLESS
+- STAY FOCUSED
+- WRITE CLEAN
+- NO BUGS
+- SHIP IT
+- CALM AND CODE
 
 ### 中文
 - 愿此工程一次通过。请继续实现，先验证，再提交。

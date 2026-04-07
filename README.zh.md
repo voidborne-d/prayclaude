@@ -109,11 +109,12 @@ PrayClaude 本质上是个 Electron 托盘小工具，加一个全屏透明 over
 - 愿上下文清明，愿改动收敛。请继续，并避免低级错误。
 
 ### English
-- May this build pass cleanly. Please continue, verify first, then commit.
-- Incense offered. Please check edge cases carefully and keep the code lean and steady.
-- May the bugs disperse and the tests turn green. Please self-review before you finish.
-- One stick of incense for this repo. Please favor correctness first, speed second.
-- Bless this session. Please think calmly, implement carefully, then summarize risks.
+- BLESS
+- STAY FOCUSED
+- WRITE CLEAN
+- NO BUGS
+- SHIP IT
+- CALM AND CODE
 
 ---
 
